@@ -1,27 +1,48 @@
 #import sys
 import os
 import inspect
-#sys.path.insert(0, '/usr/local/spark/python')
-#sys.path.insert(0, '/usr/local/spark/python/lib/py4j-0.10.9-src.zip')
+#sys.path.insert(0,'/usr/local/spark/python')
+#sys.path.insert(0,'/usr/local/spark/python/lib/py4j-0.10.9-src.zip')
 from pyspark.sql import SparkSession
+from typing import List,Optional
+from .transform import Transform
+from .ios import Ios,Input,Output
 
 class SparkleRuntime:
-    def __init__(self):
-        self.spark = None
-        self.transforms = []
+    INSTANCE = None
 
-    def start(self, appname="sparkle", driver_memory="1g", executor_memory="4g"):
+    def __init__(self):
+        self.spark : Optional[SparkSession] = None
+        self.transforms : List[Transform] = []
+
+    @classmethod
+    def instance(cls):
+        if cls.INSTANCE is None:
+            cls.INSTANCE = SparkleRuntime()
+        return cls.INSTANCE
+
+    def start(self,appname="sparkle",driver_memory="1g",executor_memory="4g"):
         os.environ["PYSPARK_SUBMIT_ARGS"] = f"--driver-memory {driver_memory} --executor-memory {executor_memory} pyspark-shell"
         self.spark = SparkSession.builder.appName(appname).getOrCreate()
 
-    
-    def add_transform(self, tf):
+    def add_transform(self,tf : Transform):
         self.transforms.append(tf)
 
     def submit(self):
         if self.spark is None:
             self.start()
         for tf in self.transforms:
-            args = inspect.getargspec(tf)
-            params = None
-            tf(self.spark.sparkContext, )
+            tf.invoke(self.spark)
+
+    def load(self,ios : Input):
+        return ios.read_df(self.spark)
+
+
+def transform_df(output,**ios):
+    assert(isinstance(output,Ios))
+    for io in ios:
+        assert(isinstance(ios[io],Ios))  
+    
+    def transform_decorator(func):
+        return Transform(func,output=output,**ios)
+    return transform_decorator
