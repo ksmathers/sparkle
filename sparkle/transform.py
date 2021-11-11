@@ -1,9 +1,10 @@
 from .ios import Ios,Output
 from typing import Dict,Callable
 from pyspark.sql.session import SparkSession
+import inspect
 
 class Transform:
-    def __init__(self,callback : Callable,output : Output,**ios : Dict[str,Ios]):
+    def __init__(self, callback : Callable, output : Output, **ios : Dict[str,Ios]):
         self.ios = ios
         self.output = output
         self.callback = callback
@@ -15,6 +16,14 @@ class Transform:
             if io.iodir == 'input':
                 print(f"Reading {io.fpath}")
                 args[n] = io.read_df(spark)
-        df = self.callback(spark.sparkContext,**args)
+
+        cb = self.callback
+        arglist = inspect.signature(cb).parameters.keys()
+        if arglist[0] == 'ctx':
+            # transform_df with ctx 
+            df = self.callback(spark.sparkContext,**args)
+        else:
+            # transform_df without ctx
+            df = self.callback(**args)
         self.output.write_df(spark,df)
 
