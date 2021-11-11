@@ -11,10 +11,14 @@ The Sparkle library implements parts of the Foundry API so that you can simply c
 
 # Sparkle API
 
-## SparkleRuntime()
+## SparkleRuntime
 
 Container for a Spark runtime and a set of transforms to run in a batch.   This is analogous to a Foundry build but 
 doesn't solve the dependency graph, instead you just add the transforms that you want to run and then submit and the transforms will run in the order requested.
+
+SparkleRuntime()
+
+> Initializes the runtime environment
 
 add_transform(tf : Transform)
 
@@ -35,12 +39,25 @@ def mytransform(ctx, input1, ...):
     return result
 ```
 
-Transformation functions are called with the spark context as the first parameter, followed by each of the 
+Simplified transformation functions are called with the spark context as the first parameter, followed 
+by each of the 
 inputs as defined in the decorator which are delivered to the function as Spark DataFrames.   Inputs are loaded before your function is invoked and the Dataframe that you return as a result will be written by the containing
-environment.
+environment to the provided Output.
 
-In Foundry including the 'ctx' parameter is optional and is not populated if it is not present in the function
-signature.  In Sparkle v0.01 the 'ctx' parameter is required.
+Including the 'ctx' parameter is optional and is not populated if it is not present in the function
+signature.  
+
+```
+@transform(input1 : Input, output1 : Output, ...)
+def mytransform(ctx, input1, output1, ...):
+    output1.write_dataframe(input1)
+```
+
+Full transformation functions are called with the spark context as the optional first parameter, followed by
+a series of inputs and outputs.   Outputs are written using the 'write_dataframe()' method, while inputs are 
+preloaded Spark DataFrame objects.
+
+
 
 ## Input
 

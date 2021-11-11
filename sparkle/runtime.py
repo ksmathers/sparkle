@@ -44,5 +44,12 @@ def transform_df(output,**ios):
         assert(isinstance(ios[io],Ios))  
     
     def transform_decorator(func):
-        return Transform(func,output=output,**ios)
+        return Transform(func, _output=output, **ios)
+    return transform_decorator
+
+def transform(**ios):
+    for io in ios:
+        assert(isinstance(ios[io],Ios))  
+    def transform_decorator(func):
+        return Transform(func, _output=None, _tf_type='full', **ios)
     return transform_decorator
