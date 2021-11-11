@@ -18,12 +18,11 @@ doesn't solve the dependency graph, instead you just add the transforms that you
 
 add_transform(tf : Transform)
 
-    Adds a transform to the build
+> Adds a transform to the build
 
 submit()
 
-    Runs the previously added transforms.   Submit will also start the spark session if it hasn't already
-    been started.
+> Runs the previously added transforms.   Submit will also start the spark session if it hasn't already been started.
 
 ## Transform
 
@@ -47,15 +46,13 @@ signature.  In Sparkle v0.01 the 'ctx' parameter is required.
 
 Input(path)
 
-    Inputs define a data source to use for reading a Spark dataframe.   Currently the supplied path must point to
-    a CSV file, or a directory that contains a set of related CSV files as RDD segments.
+> Inputs define a data source to use for reading a Spark dataframe.   Currently the supplied path must point to a CSV file, or a directory that contains a set of related CSV files as RDD segments.
 
 ## Output
 
 Output(path)
 
-    Outputs define a data sink to use for writing a Spark dataframe.   Currently the supplied path must point to 
-    a directory where CSV files will be written as RDD segments.
+> Outputs define a data sink to use for writing a Spark dataframe.   Currently the supplied path must point to a directory where CSV files will be written as RDD segments.
 
 
 # Examples
@@ -65,7 +62,7 @@ after the '-- snip --' comments are boilerplate code specific to setting up the 
 to any APIs found in Foundry.   The code between the two '-- snip --' comments should be runnable in Foundry
 provided that the referenced file paths are replaced with FoundryFS paths to which the user has access.
 
-```
+```python
 from sparkle import SparkleRuntime, Input, Output, transform_df
 
 rt = SparkleRuntime()
@@ -88,3 +85,4 @@ def mytransform(ctx, xx : DataFrame, xy : DataFrame):
 rt.transforms.clear()
 rt.add_transform(mytransform)
 rt.submit()
+```
