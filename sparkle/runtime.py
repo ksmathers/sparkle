@@ -1,4 +1,4 @@
-#import sys
+import sys
 import os
 import inspect
 #sys.path.insert(0,'/usr/local/spark/python')
@@ -8,12 +8,16 @@ from typing import List,Optional
 from .transform import Transform
 from .ios import Ios,Input,Output
 
+
 class SparkleRuntime:
     INSTANCE = None
 
     def __init__(self):
         self.spark : Optional[SparkSession] = None
         self.transforms : List[Transform] = []
+
+    def reset(self):
+        self.transforms = []
 
     @classmethod
     def instance(cls):
@@ -30,6 +34,7 @@ class SparkleRuntime:
 
     def submit(self):
         if self.spark is None:
+            print("Spark session not started.  Starting with default params.", file=sys.stderr)
             self.start()
         for tf in self.transforms:
             tf.invoke(self.spark)
