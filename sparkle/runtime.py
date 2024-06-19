@@ -6,6 +6,7 @@ import inspect
 from pyspark.sql import SparkSession
 from typing import List,Optional
 from .transform import Transform
+from .vfs import Vfs
 from .ios import Ios,Input,Output
 
 
@@ -15,6 +16,10 @@ class SparkleRuntime:
     def __init__(self):
         self.spark : Optional[SparkSession] = None
         self.transforms : List[Transform] = []
+        self.vfs : Optional[Vfs] = None
+
+    def register_vfs(self, vfs : Vfs):
+        self.vfs = vfs
 
     def reset(self):
         self.transforms = []
@@ -46,15 +51,15 @@ class SparkleRuntime:
 def transform_df(output,**ios):
     assert(isinstance(output,Ios))
     for io in ios:
-        assert(isinstance(ios[io],Ios))  
-    
+        assert(isinstance(ios[io],Ios))
+
     def transform_decorator(func):
         return Transform(func, _output=output, **ios)
     return transform_decorator
 
 def transform(**ios):
     for io in ios:
-        assert(isinstance(ios[io],Ios))  
+        assert(isinstance(ios[io],Ios))
     def transform_decorator(func):
         return Transform(func, _output=None, _tf_type='full', **ios)
     return transform_decorator

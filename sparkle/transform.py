@@ -1,12 +1,13 @@
 from .ios import Ios,Output,Input
 from typing import Dict,Callable
 from pyspark.sql.session import SparkSession
+from .runtime import SparkleRuntime
 import inspect
 
 
 class TransformContext:
-    def __init__(self, spark_session, is_incremental = False):
-        self.spark_session = spark_session
+    def __init__(self, runtime : SparkleRuntime, is_incremental = False):
+        self.runtime = runtime
         self.is_incremental = is_incremental
 
 class Transform:
@@ -16,26 +17,26 @@ class Transform:
         self.callback = callback
         self._tf_type = _tf_type
 
-    def invoke(self, spark : SparkSession):
+    def invoke(self, runtime : SparkleRuntime):
         args={}
 
         for n in self.ios:
             io = self.ios[n]
             if io.iodir == 'input' and self._tf_type == 'simple':
                 print(f"Reading {io.fpath}")
-                args[n] = io.read_df(spark)
+                args[n] = io._read_df(runtime)
             else:
                 args[n] = io
 
         cb = self.callback
         arglist = list(inspect.signature(cb).parameters.keys())
         if 'ctx' in arglist:
-            # transform with ctx 
-            df = cb(ctx=TransformContext(spark),**args)
+            # transform with ctx
+            df = cb(ctx=TransformContext(runtime),**args)
         else:
             # transform without ctx
             df = cb(**args)
 
         if self._tf_type == 'simple':
-            self.output._write_df(df)
+            self.output._write_df(df, runtime)
 
