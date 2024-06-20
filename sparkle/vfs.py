@@ -10,7 +10,7 @@ class Vfs:
     def add_mounts(self, mounts):
         """
         mounts :Dict[str,str]: Dictionary of vfs prefixes to actual locations
-            e.g. { '/MyProject': r'C:\Users\Kevin\git\sparkle' }
+            e.g. { '/MyProject': 'C:\\Users\\Kevin\\git\\sparkle' }
         """
         for k,v in mounts.items():
             self.mounts[k] = v
