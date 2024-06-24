@@ -14,9 +14,11 @@ class SparkleRuntime:
     INSTANCE = None
 
     def __init__(self):
+        assert(SparkleRuntime.INSTANCE is None)
         self.spark : Optional[SparkSession] = None
         self.transforms : List[Transform] = []
         self.vfs : Optional[Vfs] = None
+        SparkleRuntime.INSTANCE = self
 
     def register_vfs(self, vfs : Vfs):
         self.vfs = vfs
@@ -42,10 +44,10 @@ class SparkleRuntime:
             print("Spark session not started.  Starting with default params.", file=sys.stderr)
             self.start()
         for tf in self.transforms:
-            tf.invoke(self.spark)
+            tf.invoke(self)
 
     def load(self,ios : Input):
-        return ios.read_df(self.spark)
+        return ios._read_df(self)
 
 
 def transform_df(output,**ios):

@@ -16,10 +16,9 @@ class Vfs:
             self.mounts[k] = v
 
     def vfspath(self, fpath):
-        for k,v in self.mounts:
+        for k,v in self.mounts.items():
             if fpath.startswith(k):
-                fpath.replace(k, v)
-                return fpath
+                return fpath.replace(k, v)
         raise RuntimeError("Undefined VFS mount: ", fpath)
 
     def write_df(self, df : DataFrame, fpath : str, format : str):
@@ -34,9 +33,9 @@ class Vfs:
         vpath = self.vfspath(fpath)
         print(f"Loading {vpath} as {format}")
         spark = self.runtime.spark
-        if self.format == "csv":
+        if format == "csv":
             df = spark.read.format('csv').option('header',True).load(vpath)
-        elif self.format == "parquet":
+        elif format == "parquet":
             df = spark.read.format('parquet').load(vpath)
         else:
             raise NotImplementedError(f"Unknown format: {format}")

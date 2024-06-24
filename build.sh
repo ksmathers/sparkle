@@ -1,3 +1,4 @@
+#!bash
 stages=${*:-1 2 3 4 5 6 7 8 9}
 # build.sh is to build docker image from within MacBook
 #. ~/bin/arad-de
@@ -15,7 +16,6 @@ mkdist() {
 
 if grep -q 1 <<< "$stages" ; then
     echo "Stage 1: Rebuild dependencies"
-#    mkdist ~/git/dca-aws-jupyter
     mkdist ~/git/sparkle
     cp -r ~/etc dist/etc
 fi
