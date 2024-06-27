@@ -9,5 +9,5 @@ setup(name='sparkle',
       author_email='kevin@ank.com',
       url='https://github.com/sparkle',
       packages=['sparkle'],
-      install_requires=['pyspark']
+      install_requires=['pyspark', 'pyarrow', 'grpcio', 'grpcio-status']
      )
