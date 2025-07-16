@@ -60,6 +60,30 @@ class SparkleRuntime:
     def load(self,ios : Input):
         return ios._read_df(self)
 
+def incremental(require_incremental=False, 
+                semantic_version=1,
+                snapshot_inputs=None,
+                alllow_retention=False,
+                strict_append=False,
+                v2_semantics=False):
+    def incremental_decorator(transform):
+        transform._is_incremental = True
+        transform._require_incremental = require_incremental
+        transform._semantic_version = semantic_version
+        transform._snapshot_inputs = snapshot_inputs if snapshot_inputs is not None else []
+        transform._allow_retention = alllow_retention
+        transform._strict_append = strict_append
+        transform._v2_semantics = v2_semantics
+        return transform
+    return incremental_decorator
+
+def configure(profile=[], allowed_run_duration=None, run_as_user=False):
+    def configure_decorator(transform):
+        transform._profile = profile
+        transform._allowed_run_duration = allowed_run_duration
+        transform._run_as_user = run_as_user
+        return transform
+    return configure_decorator
 
 def transform_df(output,**ios):
     assert(isinstance(output,Ios))

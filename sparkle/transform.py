@@ -5,8 +5,16 @@ import inspect
 
 class TransformContext:
     def __init__(self, runtime, is_incremental = False):
+        self.auth_header = None
+        self.fallback_branches = []
+        self.parameters = {}
+        self.spark_session = runtime.spark
         self.runtime = runtime
         self.is_incremental = is_incremental
+
+    def abort_job(self, msg):
+        raise Exception(msg)
+
 
 class Transform:
     def __init__(self, callback : Callable, _output : Output, _tf_type = 'simple', **ios : Dict[str,Ios]):
@@ -14,8 +22,18 @@ class Transform:
         self.output = _output
         self.callback = callback
         self._tf_type = _tf_type
+        self._profile = []
+        self._allowed_run_duration = None
+        self._run_as_user = False
+        self._is_incremental = False
+        self._require_incremental = False
+        self._semantic_version = 1
+        self._snapshot_inputs = []
+        self._allow_retention = False
+        self._strict_append = False
+        self._v2_semantics = False
 
-    def invoke(self, runtime):
+    def invoke(self, runtime : "sparkle.SparkleRuntime"):
         args={}
         for n in self.ios:
             io = self.ios[n]
