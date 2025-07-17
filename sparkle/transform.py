@@ -1,5 +1,5 @@
 from .ios import Ios,Output,Input
-from typing import Dict,Callable
+from typing import Dict,Callable,cast
 import inspect
 
 
@@ -17,8 +17,8 @@ class TransformContext:
 
 
 class Transform:
-    def __init__(self, callback : Callable, _output : Output, _tf_type = 'simple', **ios : Dict[str,Ios]):
-        self.ios = ios
+    def __init__(self, callback : Callable, _output : Output, _tf_type = 'simple', **ios : Ios):
+        self.ios : Dict[str, Ios] = ios
         self.output = _output
         self.callback = callback
         self._tf_type = _tf_type
@@ -33,13 +33,13 @@ class Transform:
         self._strict_append = False
         self._v2_semantics = False
 
-    def invoke(self, runtime : "sparkle.SparkleRuntime"):
+    def invoke(self, runtime):
         args={}
         for n in self.ios:
             io = self.ios[n]
             if io.iodir == 'input' and self._tf_type == 'simple':
                 print(f"Reading {io.fpath}")
-                args[n] = io._read_df(runtime)
+                args[n] = cast(Input, io)._read_df(runtime)
             else:
                 args[n] = io
 
