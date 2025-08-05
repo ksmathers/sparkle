@@ -8,7 +8,7 @@ mkdist() {
     srcdir=$1
     echo " - $srcdir"
     app=`basename $srcdir`
-    #rm -rf dist/$app
+    rm -rf dist/$app
     mkdir -p dist/$app
     pip wheel -q $srcdir -w dist/$app
     rm -f dist/$app/*macos*
@@ -17,7 +17,8 @@ mkdist() {
 if grep -q 1 <<< "$stages" ; then
     echo "Stage 1: Rebuild dependencies"
     mkdist ~/git/sparkle
-    cp -r ~/etc dist/etc
+    mkdist ~/git/dca-aws-jupyter
+    cp -r ~/etc/CombinedCA.cer dist/etc
 fi
 
 if grep -q 2 <<< "$stages" ; then
