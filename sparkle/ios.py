@@ -19,6 +19,10 @@ class Input(Ios):
     def dataframe(self) -> DataFrame:
         from .runtime import SparkleRuntime
         return self._read_df(SparkleRuntime.instance())
+    
+class TransformInput(Input):
+    def __init__(self, fpath : str):
+        super().__init__(fpath)
 
 class Output(Ios):
     def __init__(self, fpath : str):
@@ -30,3 +34,26 @@ class Output(Ios):
     def write_dataframe(self, df : DataFrame):
         from .runtime import SparkleRuntime
         self._write_df(df, SparkleRuntime.instance())
+
+    def filesystem(self):
+        from .runtime import SparkleRuntime
+        from .vfs import Vfs, VfsDataset
+        rt = SparkleRuntime.instance()
+        assert(rt.vfs is not None)
+        return VfsDataset(rt.vfs, self.fpath)
+
+
+
+class TransformOutput(Output):
+    # class TransformOutput(
+    #     rid: str,
+    #     branch: str,
+    #     txrid: str,
+    #     dfreader: DataFrameReader,
+    #     dfwriter: DataFrameWriter,
+    #     fsbuilder: FileSystemWriter,
+    #     mode: str = "replace"
+    # )
+
+    def __init__(self, fpath : str):
+        super().__init__(fpath)
