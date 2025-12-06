@@ -9,6 +9,11 @@ class Ios:
         if fpath.endswith(".parquet") or fpath.endswith(".pq"):
             self.format = "parquet"
 
+    def filesystem(self, read_only):
+        from .runtime import SparkleRuntime
+        runtime = SparkleRuntime.instance()
+        return runtime.vfs.filesystem(self.fpath, read_only=read_only)
+
 class Input(Ios):
     def __init__(self, fpath : str):
         super().__init__(fpath,'input')
@@ -19,6 +24,10 @@ class Input(Ios):
     def dataframe(self) -> DataFrame:
         from .runtime import SparkleRuntime
         return self._read_df(SparkleRuntime.instance())
+    
+    def filesystem(self):
+        return super().filesystem(read_only=True)
+
 
 class Output(Ios):
     def __init__(self, fpath : str):
@@ -30,3 +39,6 @@ class Output(Ios):
     def write_dataframe(self, df : DataFrame):
         from .runtime import SparkleRuntime
         self._write_df(df, SparkleRuntime.instance())
+
+    def filesystem(self):
+        return super().filesystem(read_only=False)
