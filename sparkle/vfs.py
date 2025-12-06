@@ -1,6 +1,25 @@
 import os
 from pyspark.sql import DataFrame
 #from runtime import SparkleRuntime
+import os
+
+class FileSystem:
+    def __init__(self, basepath, read_only=False):
+        self.basepath = basepath
+        self.readonly = read_only
+
+    def open(self, fpath, mode='r', **kwargs):
+        if self.readonly and 'w' in mode:
+            raise RuntimeError("Filesystem is read-only")
+        fullpath = os.path.join(self.basepath, fpath)
+        return open(fullpath, mode, **kwargs)
+
+    def files(self, glob=None, regex=".*", show_hidden=False) -> DataFrame:
+        raise NotImplementedError("Not implemented for non-local filesystems")
+    
+    def ls(self, glob=None, regex=".*", show_hidden=False) -> list:
+        raise NotImplementedError("Not implemented for non-local filesystems")
+
 
 class Vfs:
     def __init__(self, runtime, mounts={}):
@@ -21,6 +40,12 @@ class Vfs:
             if fpath.startswith(k):
                 return fpath.replace(k, v)
         raise RuntimeError("Undefined VFS mount: ", fpath)
+    
+    def filesystem(self, fpath : str, read_only=False):
+        vpath = self.vfspath(fpath)
+        if not os.path.isdir(vpath):
+            os.makedirs(vpath)
+        return FileSystem(vpath, read_only)
 
     def write_df(self, df : DataFrame, fpath : str, format : str):
         vpath = self.vfspath(fpath)
