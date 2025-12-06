@@ -9,10 +9,16 @@ class Ios:
         if fpath.endswith(".parquet") or fpath.endswith(".pq"):
             self.format = "parquet"
 
-    def filesystem(self, read_only):
+    def _filesystem(self, read_only):
         from .runtime import SparkleRuntime
         runtime = SparkleRuntime.instance()
         return runtime.vfs.filesystem(self.fpath, read_only=read_only)
+    
+        from .runtime import SparkleRuntime
+        from .vfs import Vfs, VfsDataset
+        rt = SparkleRuntime.instance()
+        assert(rt.vfs is not None)
+        return VfsDataset(rt.vfs, self.fpath)
 
 class Input(Ios):
     def __init__(self, fpath : str):
@@ -26,7 +32,12 @@ class Input(Ios):
         return self._read_df(SparkleRuntime.instance())
     
     def filesystem(self):
-        return super().filesystem(read_only=True)
+        return super()._filesystem(read_only=True)
+    
+class TransformInput(Input):
+    def __init__(self, fpath : str):
+        super().__init__(fpath)
+
 
 
 class Output(Ios):
@@ -41,4 +52,20 @@ class Output(Ios):
         self._write_df(df, SparkleRuntime.instance())
 
     def filesystem(self):
-        return super().filesystem(read_only=False)
+        return super()._filesystem(read_only=False)
+
+
+class TransformOutput(Output):
+    # class TransformOutput(
+    #     rid: str,
+    #     branch: str,
+    #     txrid: str,
+    #     dfreader: DataFrameReader,
+    #     dfwriter: DataFrameWriter,
+    #     fsbuilder: FileSystemWriter,
+    #     mode: str = "replace"
+    # )
+
+    def __init__(self, fpath : str):
+        super().__init__(fpath)
+        

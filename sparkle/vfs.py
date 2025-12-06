@@ -1,3 +1,4 @@
+import os
 from pyspark.sql import DataFrame
 #from runtime import SparkleRuntime
 import os
@@ -65,3 +66,12 @@ class Vfs:
         else:
             raise NotImplementedError(f"Unknown format: {format}")
         return df
+
+class VfsDataset:
+    def __init__(self, vfs : Vfs, basepath : str):
+        self.vfs = vfs
+        self.basepath = vfs.vfspath(basepath)
+
+    def open(self, fpath, mode='r'):
+        return open(os.path.join(self.basepath, fpath), mode)
+    
