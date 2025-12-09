@@ -97,6 +97,7 @@ def transform_df(output,**ios):
 def transform(**ios):
     for io in ios:
         assert(isinstance(ios[io],Ios))
+
     def transform_decorator(func):
         return Transform(func, _output=None, _tf_type='full', **ios)
     return transform_decorator

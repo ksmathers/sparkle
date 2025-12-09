@@ -1,5 +1,8 @@
+import json
 import os
+from typing import Optional
 from pyspark.sql import DataFrame
+from pyspark.sql import types as T
 #from runtime import SparkleRuntime
 import os
 
@@ -55,12 +58,38 @@ class Vfs:
         else:
             df.write.format('parquet').mode('overwrite').save(vpath)
 
+    def load_schema(self, fpath : str) -> Optional[T.StructType]:
+        schema_path = os.path.join(fpath, "schema.json")
+        vpath = self.vfspath(schema_path)
+        if not os.path.exists(vpath):
+            raise RuntimeError(f"Schema file not found: {vpath}")
+        with open(vpath, 'r') as f:
+            schema_json = json.load(f)
+        # Foundry schema is in the form of a List[Dict] where each Dict has 'name' and 'type' keys
+        # We need to convert it to Spark StructType
+        cols = []
+        for col in schema_json:
+            col_name = col['name']
+            col_type = col['type']
+            col_nullable = col.get('nullable', True)
+            if col_type == 'INTEGER':
+                col = T.StructField(col_name, T.IntegerType(), col_nullable)
+            elif col_type == 'DOUBLE':
+                col = T.StructField(col_name, T.DoubleType(), col_nullable)
+            elif col_type == 'STRING':
+                col = T.StructField(col_name, T.StringType(), col_nullable)
+            else:
+                raise NotImplementedError(f"Unknown column type: {col_type}")
+            cols.append(col)
+        return T.StructType(cols)
+
     def read_df(self, fpath : str, format : str):
         vpath = self.vfspath(fpath)
         print(f"Loading {vpath} as {format}")
         spark = self.runtime.spark
         if format == "csv":
-            df = spark.read.format('csv').option('header',True).load(vpath)
+            schema = self.load_schema(fpath)
+            df = spark.read.format('csv').option('header',True).schema(schema).load(vpath)
         elif format == "parquet":
             df = spark.read.format('parquet').load(vpath)
         else:

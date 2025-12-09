@@ -1,4 +1,4 @@
-from .ios import Ios,Output,Input
+from .ios import Ios,Output,Input, TransformInput, TransformOutput
 from typing import Dict,Callable,cast
 import inspect
 
@@ -34,15 +34,27 @@ class Transform:
         self._v2_semantics = False
 
     def invoke(self, runtime):
-        args={}
+        # Prepare transform arguments
+        args = {}
         for n in self.ios:
             io = self.ios[n]
-            if io.iodir == 'input' and self._tf_type == 'simple':
-                print(f"Reading {io.fpath}")
-                args[n] = cast(Input, io)._read_df(runtime)
+            if io.iodir == 'input':
+                input_wrapper = TransformInput(io.fpath, runtime)
+                if self._tf_type == 'simple':
+                    print(f"Reading {io.fpath}")
+                    args[n] = input_wrapper.dataframe()
+                else:
+                    args[n] = input_wrapper
+            elif io.iodir == 'output':
+                output_wrapper = TransformOutput(io.fpath, runtime)
+                if self._tf_type == 'simple':
+                    raise RuntimeError("Simple transforms can have only input Ios")
+                else:
+                    args[n] = output_wrapper
             else:
-                args[n] = io
+                raise RuntimeError(f"Unknown iodir: {io.iodir}")
 
+        # Invoke the transform callback
         cb = self.callback
         arglist = list(inspect.signature(cb).parameters.keys())
         if 'ctx' in arglist:
@@ -52,6 +64,7 @@ class Transform:
             # transform without ctx
             df = cb(**args)
 
+        # Write output for simple transforms.  Standard transforms handle output internally.
         if self._tf_type == 'simple':
-            self.output._write_df(df, runtime)
-
+            output_wrapper = TransformOutput(self.output.fpath, runtime)
+            output_wrapper.write_dataframe(df)
