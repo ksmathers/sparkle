@@ -32,7 +32,7 @@ class SparkleRuntime:
             cls.INSTANCE = SparkleRuntime()
         return cls.INSTANCE
 
-    def start(self,appname="sparkle",driver_memory="1g",executor_memory="4g", master=None):
+    def start(self,appname="sparkle",driver_memory="1g",executor_memory="4g", master="local[*]"):
         """
         Starts the Spark environment.  If the 'master' option is provided then that will be used to 
         open a connection to the spark cluster.
@@ -40,12 +40,16 @@ class SparkleRuntime:
         appname :str: default "sparkle"
         driver_memory :str: initial memory to allocate to driver 
         """
-        os.environ["PYSPARK_SUBMIT_ARGS"] = f"--driver-memory {driver_memory} --executor-memory {executor_memory} pyspark-shell"
+        #os.environ["PYSPARK_SUBMIT_ARGS"] = f"--driver-memory {driver_memory} --executor-memory {executor_memory} pyspark-shell"
         spark = SparkSession.builder.appName(appname)
         if master:
             spark = spark.master(master)
-        spark = spark.getOrCreate()
-        self.spark = spark
+        #spark = spark.config("spark.executor.memory", executor_memory)
+        spark = spark.config("spark.driver.memory", driver_memory)
+        spark = spark.config("spark.shuffle.service.enabled", "false")
+        spark = spark.config("spark.driver.host", "127.0.0.1")
+        spark = spark.config("spark.driver.bindAddress", "127.0.0.1")
+        self.spark = spark.getOrCreate()
 
     def add_transform(self,tf : Transform):
         self.transforms.append(tf)

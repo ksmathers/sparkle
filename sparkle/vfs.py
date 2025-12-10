@@ -59,7 +59,7 @@ class Vfs:
             df.write.format('parquet').mode('overwrite').save(vpath)
 
     def load_schema(self, fpath : str) -> Optional[T.StructType]:
-        schema_path = os.path.join(fpath, "schema.json")
+        schema_path = os.path.join(fpath, "_/schema.json")
         vpath = self.vfspath(schema_path)
         if not os.path.exists(vpath):
             raise RuntimeError(f"Schema file not found: {vpath}")
