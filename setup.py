@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='sparkle',
-      version='0.04',
+      version='0.05',
       description='Foundry Compatible Spark API for Local Development',
       author='Kevin Smathers',
       author_email='kevin@ank.com',
