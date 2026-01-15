@@ -1,6 +1,6 @@
 import glob
 from os import stat_result
-from typing import Any
+from typing import Any, Optional
 from pyspark.sql import DataFrame
 
 class Ios:
@@ -16,23 +16,6 @@ class Ios:
         self.iodir = iodir
         self.fpath = fpath
 
-    def _auto_format(self, runtime) -> str:
-        local_path = runtime.vfs.vfspath(self.fpath)  # Validate VFS path
-        if self.iodir == 'input':
-            files = glob.glob(local_path + "/*")
-            if any(f.endswith('.parquet') or f.endswith('.pq') for f in files):
-                format = "parquet"
-            elif any(f.endswith('.csv') for f in files):
-                format = "csv"
-            else:
-                raise RuntimeError(f"Could not auto-detect input format for path: {self.fpath}")
-        elif self.iodir == 'output':
-            # Default to Parquet for output.  
-            format = "parquet"
-        else:
-            raise RuntimeError(f"Unknown iodir: {self.iodir}")
-        return format
-
     def _filesystem(self, read_only, runtime):
         return runtime.vfs.filesystem(self.fpath, read_only=read_only)
 
@@ -40,8 +23,8 @@ class Input(Ios):
     def __init__(self, fpath : str):
         super().__init__(fpath,'input')
 
-    def _read_df(self, runtime) -> DataFrame:
-        return runtime.vfs.read_df(self.fpath, self._auto_format(runtime))
+    def _read_df(self, runtime, ftype : Optional[str] = None) -> DataFrame:
+        return runtime.vfs.read_df(self.fpath, ftype)
      
 
 class TransformInput(Input):
@@ -62,8 +45,8 @@ class Output(Ios):
     def __init__(self, fpath : str):
         super().__init__(fpath,'output')
 
-    def _write_df(self, df : DataFrame, runtime):
-        runtime.vfs.write_df(df, self.fpath, 'parquet')
+    def _write_df(self, df : DataFrame, runtime, ftype : Optional[str] = None):
+        runtime.vfs.write_df(df, self.fpath, ftype)
 
 
 class TransformOutput(Output):
