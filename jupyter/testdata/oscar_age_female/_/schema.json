@@ -1,0 +1,19 @@
+[
+  { 
+    "type": "INTEGER",
+    "name": "Index"
+  },{
+    "type": "INTEGER",
+    "name": "Year"
+  },{
+    "type": "INTEGER",
+    "name": "Age"
+  },{
+    "type": "STRING",
+    "name": "Name"
+  },{
+    "type": "STRING",
+    "name": "Movie"
+  }
+]
+  
